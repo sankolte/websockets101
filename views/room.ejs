@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= room.name %> - Chat</title>
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Expose room ID to client script -->
+  <script>
+    const ROOM_ID = "<%= room.id %>";
+    const ROOM_NAME = "<%= room.name %>";
+  </script>
+</head>
+<body>
+  <div class="app-container">
+    <div class="chat-wrapper">
+      <header class="chat-header">
+        <div class="header-info">
+          <div class="header-title-row">
+            <a href="/" class="back-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </a>
+            <h1><%= room.name %></h1>
+          </div>
+          <span class="status"><span class="status-dot"></span> Online in Room</span>
+        </div>
+      </header>
+      
+      <div class="chat-messages" id="messages">
+        <!-- Messages will be injected here -->
+        <div class="system-message">
+          <span>Welcome to <%= room.name %>!</span>
+        </div>
+      </div>
+      
+      <div id="typing-indicator" class="typing-indicator"></div>
+
+      <form class="chat-input-area" id="chat-form">
+        <input 
+          type="text" 
+          id="message-input" 
+          placeholder="Type a message..." 
+          autocomplete="off"
+          required
+        />
+        <button type="submit" class="send-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/script.js"></script>
+</body>
+</html>

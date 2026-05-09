@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat - Rooms</title>
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container dashboard-container">
+    <div class="dashboard-wrapper">
+      <header class="chat-header dashboard-header">
+        <div class="header-info">
+          <h1>Chat Rooms</h1>
+          <p class="subtitle">Join a room or create a new one</p>
+        </div>
+      </header>
+      
+      <div class="dashboard-content">
+        <!-- Create Room Form -->
+        <div class="create-room-section">
+          <form action="/rooms" method="POST" class="create-form">
+            <input 
+              type="text" 
+              name="name" 
+              placeholder="Enter new room name..." 
+              required 
+              class="form-input"
+              autocomplete="off"
+            />
+            <button type="submit" class="btn btn-primary">Create Room</button>
+          </form>
+        </div>
+
+        <!-- Room List -->
+        <div class="room-list">
+          <% if (rooms && rooms.length > 0) { %>
+            <% rooms.forEach(room => { %>
+              <div class="room-card">
+                <div class="room-info">
+                  <h3><%= room.name %></h3>
+                  <span class="room-id">ID: <%= room.id %></span>
+                </div>
+                <div class="room-actions">
+                  <a href="/rooms/<%= room.id %>" class="btn btn-success">Join</a>
+                  <a href="/rooms/<%= room.id %>/edit" class="btn btn-secondary">Edit</a>
+                  
+                  <form action="/rooms/<%= room.id %>?_method=DELETE" method="POST" class="inline-form">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this room?')">Delete</button>
+                  </form>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="empty-state">
+              <p>No chat rooms available. Create one to get started!</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

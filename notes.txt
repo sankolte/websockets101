@@ -1,0 +1,36 @@
+app.listen() is basically a shortcut around http.createServer(app).listen().
+
+These two are almost equivalent:
+
+const express = require("express");
+const app = express();
+
+app.listen(3000);
+
+Internally Express does something like:
+
+const http = require("http");
+
+const server = http.createServer(app);
+server.listen(3000);
+
+So for a normal Express app, both work fine.
+
+Then why do people use http.createServer(app) with Socket.IO?
+
+Because Socket.IO
+ needs access to the actual HTTP server instance.
+
+Example:
+
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
+const app = express();
+
+const server = http.createServer(app);
+
+const io = new Server(server);
+
+server.listen(3000);

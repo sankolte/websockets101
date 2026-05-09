@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Room - Chat</title>
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <div class="dashboard-wrapper edit-wrapper">
+      <header class="chat-header dashboard-header">
+        <div class="header-info">
+          <h1>Edit Room</h1>
+          <p class="subtitle">Update the details for "<%= room.name %>"</p>
+        </div>
+      </header>
+      
+      <div class="dashboard-content edit-content">
+        <form action="/rooms/<%= room.id %>?_method=PUT" method="POST" class="edit-form">
+          <div class="form-group">
+            <label for="name">Room Name</label>
+            <input 
+              type="text" 
+              id="name"
+              name="name" 
+              value="<%= room.name %>" 
+              required 
+              class="form-input"
+              autocomplete="off"
+            />
+          </div>
+          
+          <div class="form-actions">
+            <a href="/" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
