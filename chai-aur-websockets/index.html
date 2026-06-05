@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=\, initial-scale=1.0">
+    <title>chai aur Websockets </title>
+</head>
+<body>
+    <h1>chai aur Websockets</h1>
+    <p>Yeh ek simple example hai jisme hum chai aur websockets ka use kar rahe hain.</p>
+
+    <script>
+        const {port}= window.location;
+        const connection = new WebSocket(`ws://localhost:${port}`);
+       //"Open a WebSocket connection to this address."
+        // this line > const {port}= window.location; < is used to get the port number from the current URL, which is then used to establish a WebSocket connection to the server running on that port.
+        connection.onopen = () => {
+            console.log('WebSocket connection established');
+            connection.send('Hello Server!');
+        };
+        
+        
+    </script>
+
+
+</body>
+</html>
