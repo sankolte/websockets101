@@ -28,12 +28,24 @@ wsServer.on("connection", (websocket) => {
     // Kuch message aane par iss ws connection pe ye callback chalega
     websocket.on("message", (data) => {
         console.log(`message received from client: ${data}`);  
-        websocket.send("message received from server!");  // ye message client ko bhej diya hai ki message receive ho gaya hai
+        // websocket.send("hello ji form server");  // ye message client ko bhej diya hai ki message receive ho gaya hai
+        // websocket.send(data.toString());  // ye message client ko bhej diya hai ki message receive ho gaya hai aur usme client ka message bhi include kar diya hai
+        // here we are sending the same message back to the client that we received from the client, this is called echoing the message back to the client.
+        //abhi suppose mutilpe log hoge connected to a single chat room 
+
+        // broadcasting the message to all the clients that are connected to the server, to do that we can use the wsServer.clients property which gives us a set of all the clients that are connected to the server, then we can loop through that set and send the message to each client.
+
+        wsServer.clients.forEach((client) => {
+            if(client.readyState === 1){  // readyState 1 ka matlab hai ki client connection open hai, to hum usko message bhej sakte hain
+                client.send(data.toString());  // ye message client ko bhej diya hai ki message receive ho gaya hai aur usme client ka message bhi include kar diya hai
+            }   
     });
+
+});
+
+
 });
     
-
-
 
 
 httpServer.listen(port,()=>{

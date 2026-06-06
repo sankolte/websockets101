@@ -6,20 +6,47 @@
     <title>chai aur Websockets </title>
 </head>
 <body>
-    <h1>chai aur Websockets</h1>
-    <p>Yeh ek simple example hai jisme hum chai aur websockets ka use kar rahe hain.</p>
+    <h1> Websockets101</h1>
+   
+
+        <div>
+            <input type="text" id="messageInput" placeholder="Type a message">
+            <button id="sendButton">Send</button>  
+            <ul id="messages-container"></ul> 
+        </div>
+
+
 
     <script>
+
+
+        //dom
+        const messageInput = document.getElementById('messageInput');
+        const messageSendButton = document.getElementById('sendButton');
+        const messagesContainer = document.getElementById('messages-container');
+
+
         const {port}= window.location;
         const connection = new WebSocket(`ws://localhost:${port}`);
        //"Open a WebSocket connection to this address."
         // this line > const {port}= window.location; < is used to get the port number from the current URL, which is then used to establish a WebSocket connection to the server running on that port.
         connection.onopen = () => {
-            console.log('WebSocket connection established');
-            connection.send('Hello Server!');
-        };
-        
-        
+
+            connection.onmessage=(message)=>{
+                console.log("message recieved from server: ",message.data);
+                const rawdata= message.data;
+                const text = JSON.parse(rawdata).Message; // ye line isliye hai kyunki server se jo message aayega wo JSON format me aayega, to usko parse karna padega taki hum usme se message ko extract kar sakein
+
+                const li = document.createElement('li');
+                li.innerHTML= text;
+                messagesContainer.appendChild(li);
+            }
+
+            messageSendButton.addEventListener('click', (ev) => {
+                const value = messageInput.value;
+                connection.send(JSON.stringify({ Message: value })); // ye message server ko bhej diya hai
+            });
+        }; 
     </script>
 
 
