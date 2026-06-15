@@ -2,53 +2,1098 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=\, initial-scale=1.0">
-    <title>chai aur Websockets </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHAI & WEBSOCKETS Comic Room</title>
+    <!-- Google Fonts for Comic style -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f7eed7;
+            --border-color: #1a1a1a;
+            --text-color: #1a1a1a;
+            
+            --primary-okok: #7ba8f9;
+            --bubble-bg-okok: #e2eeff;
+            
+            --primary-lalala: #ff8da1;
+            --bubble-bg-lalala: #ffeef2;
+            
+            --caption-bg: #ffe494;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Comic Neue', cursive, sans-serif;
+            color: var(--text-color);
+            background-image: radial-gradient(rgba(0, 0, 0, 0.04) 15%, transparent 16%);
+            background-size: 18px 18px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        /* Comic Panel Container */
+        .comic-panel {
+            background: #ffffff;
+            border: 4px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 8px 8px 0px var(--border-color);
+            width: 100%;
+            max-width: 500px;
+            height: 92vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Screen overlays (Setup & disconnected) */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-color);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            background-image: radial-gradient(rgba(0, 0, 0, 0.05) 15%, transparent 16%);
+            background-size: 18px 18px;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+        }
+
+        .overlay.hidden {
+            transform: translateY(-100%) scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Bangers font headings */
+        h1.comic-title {
+            font-family: 'Bangers', cursive;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            color: #1a1a1a;
+            text-shadow: 3px 3px 0px #ffe494;
+            margin-bottom: 10px;
+            transform: rotate(-1.5deg);
+        }
+
+        p.comic-subtitle {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 24px;
+            background: #fff;
+            border: 2px solid var(--border-color);
+            padding: 4px 10px;
+            display: inline-block;
+            transform: rotate(1deg);
+            box-shadow: 2px 2px 0px var(--border-color);
+        }
+
+        .setup-form {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            font-weight: 700;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .comic-input {
+            width: 100%;
+            padding: 10px 14px;
+            font-family: 'Comic Neue', cursive, sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            border: 3px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 3px 3px 0px var(--border-color);
+            outline: none;
+            background: #fff;
+            transition: all 0.2s;
+        }
+
+        .comic-input:focus {
+            box-shadow: 5px 5px 0px var(--border-color);
+            transform: translate(-1px, -1px);
+        }
+
+        /* Vibe Selector Cards */
+        .vibe-selector-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+
+        .vibe-card {
+            flex: 1;
+            background: #fff;
+            border: 3px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 4px 4px 0px var(--border-color);
+            transition: all 0.2s;
+            position: relative;
+            user-select: none;
+        }
+
+        .vibe-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--border-color);
+        }
+
+        .vibe-card.selected {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--border-color);
+            background: #ffe494;
+        }
+        
+        .vibe-card.selected.card-okok {
+            background-color: var(--bubble-bg-okok);
+            border-color: var(--border-color);
+        }
+
+        .vibe-card.selected.card-lalala {
+            background-color: var(--bubble-bg-lalala);
+            border-color: var(--border-color);
+        }
+
+        .vibe-card .vibe-icon {
+            font-size: 2.2rem;
+            margin-bottom: 6px;
+        }
+
+        .vibe-card .vibe-name {
+            font-family: 'Bangers', cursive;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+        }
+
+        .vibe-card .vibe-desc {
+            font-size: 0.75rem;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        .comic-btn {
+            background: #ffe494;
+            color: #1a1a1a;
+            font-family: 'Bangers', cursive;
+            font-size: 1.4rem;
+            letter-spacing: 1.5px;
+            padding: 12px 20px;
+            border: 3px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 4px 4px 0px var(--border-color);
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.15s;
+            text-transform: uppercase;
+        }
+
+        .comic-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--border-color);
+            background: #ffd65c;
+        }
+
+        .comic-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px var(--border-color);
+        }
+
+        /* Main Chat Screen Layout */
+        .chat-header {
+            border-bottom: 4px solid var(--border-color);
+            padding: 12px 16px;
+            background: #ffe494;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .chat-header::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--border-color);
+            z-index: 10;
+        }
+
+        .header-title-wrap {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-title {
+            font-family: 'Bangers', cursive;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            transform: rotate(-1deg);
+            text-shadow: 1px 1px 0px #fff;
+        }
+
+        .header-status {
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-dot.disconnected {
+            background: #ef4444;
+            animation: none;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Sound toggle styled like comic button */
+        .sound-toggle {
+            background: #fff;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--border-color);
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sound-toggle:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--border-color);
+        }
+
+        /* Message board pane */
+        .chat-messages {
+            flex: 1;
+            background-color: #faf6eb;
+            background-image: radial-gradient(rgba(0, 0, 0, 0.03) 12%, transparent 13%);
+            background-size: 15px 15px;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Scrollbars */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: #faf6eb;
+            border-left: 2px solid var(--border-color);
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #ffe494;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* Messages */
+        .msg-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .msg-meta {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .vibe-badge {
+            font-family: 'Bangers', cursive;
+            font-size: 0.7rem;
+            padding: 0px 5px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+        .badge-okok { background: var(--primary-okok); }
+        .badge-lalala { background: var(--primary-lalala); }
+
+        .msg-bubble {
+            position: relative;
+            max-width: 82%;
+            padding: 10px 14px;
+            border: 3px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 4px 4px 0px var(--border-color);
+            font-size: 0.95rem;
+            line-height: 1.35;
+            word-break: break-word;
+            font-weight: 500;
+        }
+
+        .msg-left {
+            align-items: flex-start;
+        }
+        .msg-left .msg-bubble {
+            background: #ffffff;
+        }
+        .msg-left.theme-okok .msg-bubble { background: var(--bubble-bg-okok); }
+        .msg-left.theme-lalala .msg-bubble { background: var(--bubble-bg-lalala); }
+
+        /* Left bubble arrow */
+        .msg-left .msg-bubble::before {
+            content: "";
+            position: absolute;
+            left: -11px;
+            top: 10px;
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-right: 8px solid var(--border-color);
+        }
+        .msg-left .msg-bubble::after {
+            content: "";
+            position: absolute;
+            left: -6px;
+            top: 11px;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-right: 7px solid #ffffff;
+        }
+        .msg-left.theme-okok .msg-bubble::after { border-right-color: var(--bubble-bg-okok); }
+        .msg-left.theme-lalala .msg-bubble::after { border-right-color: var(--bubble-bg-lalala); }
+
+        .msg-right {
+            align-items: flex-end;
+        }
+        .msg-right .msg-bubble {
+            background: #ffffff;
+        }
+        .msg-right.theme-okok .msg-bubble { background: var(--bubble-bg-okok); }
+        .msg-right.theme-lalala .msg-bubble { background: var(--bubble-bg-lalala); }
+
+        /* Right bubble arrow */
+        .msg-right .msg-bubble::before {
+            content: "";
+            position: absolute;
+            right: -11px;
+            top: 10px;
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 8px solid var(--border-color);
+        }
+        .msg-right .msg-bubble::after {
+            content: "";
+            position: absolute;
+            right: -6px;
+            top: 11px;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 7px solid #ffffff;
+        }
+        .msg-right.theme-okok .msg-bubble::after { border-left-color: var(--bubble-bg-okok); }
+        .msg-right.theme-lalala .msg-bubble::after { border-left-color: var(--bubble-bg-lalala); }
+
+        /* Caption banner for system alerts */
+        .system-banner {
+            align-self: center;
+            background: var(--caption-bg);
+            border: 2px solid var(--border-color);
+            padding: 4px 12px;
+            font-family: 'Bangers', cursive;
+            font-size: 0.9rem;
+            letter-spacing: 0.8px;
+            border-radius: 4px;
+            box-shadow: 2px 2px 0px var(--border-color);
+            transform: rotate(-0.5deg);
+            margin: 6px 0;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        /* Comic Action Reaction Panel */
+        .reaction-bar {
+            border-top: 3px dashed var(--border-color);
+            background: #fff;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 6px;
+            overflow-x: auto;
+        }
+
+        .reaction-btn {
+            background: #fff;
+            border: 2px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'Bangers', cursive;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--border-color);
+            white-space: nowrap;
+            transition: all 0.1s;
+        }
+
+        .reaction-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--border-color);
+        }
+
+        .reaction-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--border-color);
+        }
+
+        .btn-pow { background-color: #ffd65c; }
+        .btn-boom { background-color: #ff6e6e; }
+        .btn-smash { background-color: #d896ff; }
+        .btn-okok { background-color: var(--primary-okok); color: #fff; }
+        .btn-lalala { background-color: var(--primary-lalala); color: #fff; }
+
+        /* Input Form panel */
+        .chat-input-area {
+            border-top: 4px solid var(--border-color);
+            padding: 12px;
+            background: #fff;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px 12px;
+            font-family: 'Comic Neue', cursive, sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border: 3px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 2px 2px 0px var(--border-color);
+            outline: none;
+        }
+
+        .chat-input-area input:focus {
+            box-shadow: 4px 4px 0px var(--border-color);
+            transform: translate(-1px, -1px);
+        }
+
+        .send-btn {
+            background: #ffe494;
+            border: 3px solid var(--border-color);
+            font-family: 'Bangers', cursive;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            padding: 0 16px;
+            border-radius: 8px;
+            box-shadow: 3px 3px 0px var(--border-color);
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .send-btn:hover {
+            background: #ffd65c;
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px var(--border-color);
+        }
+
+        .send-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--border-color);
+        }
+
+        /* Screen-wide floating animations container */
+        #reaction-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 999;
+            overflow: hidden;
+        }
+
+        /* Floating reaction element styles */
+        .floating-reaction {
+            position: absolute;
+            transform: translate(-50%, -50%) scale(0);
+            animation: comic-blast 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .comic-burst {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .burst-svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.8));
+        }
+
+        .react-pow .burst-svg { color: #ffd65c; }
+        .react-boom .burst-svg { color: #ff6e6e; }
+        .react-smash .burst-svg { color: #d896ff; }
+        .react-okok .burst-svg { color: var(--primary-okok); }
+        .react-lalala .burst-svg { color: var(--primary-lalala); }
+
+        .burst-text {
+            position: relative;
+            z-index: 10;
+            font-family: 'Bangers', cursive;
+            font-size: 1.6rem;
+            color: #1a1a1a;
+            text-shadow: 1.5px 1.5px 0px #fff;
+            transform: rotate(-10deg);
+            animation: txt-wobble 0.25s infinite alternate;
+        }
+
+        .burst-sender {
+            font-family: 'Comic Neue', cursive;
+            font-weight: bold;
+            font-size: 0.75rem;
+            text-align: center;
+            margin-top: 2px;
+            background: #fff;
+            border: 2px solid var(--border-color);
+            padding: 1px 5px;
+            border-radius: 4px;
+            box-shadow: 1.5px 1.5px 0px var(--border-color);
+            transform: rotate(5deg);
+            white-space: nowrap;
+        }
+
+        /* Pulse keyframe for connection badge */
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes comic-blast {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            25% {
+                transform: translate(-50%, -50%) scale(1.25) rotate(-10deg);
+                opacity: 1;
+            }
+            80% {
+                transform: translate(-50%, -100px) scale(1) rotate(5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -160px) scale(0.7) rotate(15deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes txt-wobble {
+            0% { transform: rotate(-8deg) scale(0.95); }
+            100% { transform: rotate(-3deg) scale(1.05); }
+        }
+    </style>
 </head>
 <body>
-    <h1> Websockets101</h1>
-   
 
-        <div>
-            <input type="text" id="messageInput" placeholder="Type a message">
-            <button id="sendButton">Send</button>  
-            <ul id="messages-container"></ul> 
+    <!-- Floating Animations Overlay -->
+    <div id="reaction-overlay"></div>
+
+    <div class="comic-panel">
+        
+        <!-- Screen 1: Intro Setup Screen -->
+        <div id="setupOverlay" class="overlay">
+            <h1 class="comic-title">CHAI & WEBSOCKETS!</h1>
+            <p class="comic-subtitle">COMIC CHAT MULTIVERSE 💥</p>
+            
+            <div class="setup-form">
+                <div class="input-group">
+                    <label for="usernameInput">Comic Nickname</label>
+                    <input type="text" id="usernameInput" class="comic-input" placeholder="e.g. CaptainChai" maxlength="15">
+                </div>
+
+                <div class="input-group">
+                    <label>Choose Your Vibe</label>
+                    <div class="vibe-selector-container">
+                        <div class="vibe-card card-okok selected" onclick="selectVibe('okok')">
+                            <div class="vibe-icon">😐</div>
+                            <div class="vibe-name">OK OK OK</div>
+                            <div class="vibe-desc">Chill, deadpan vibe</div>
+                        </div>
+                        <div class="vibe-card card-lalala" onclick="selectVibe('lalala')">
+                            <div class="vibe-icon">🌸</div>
+                            <div class="vibe-name">LA LA LA</div>
+                            <div class="vibe-desc">Bright flower child</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="comic-btn" onclick="enterChat()">Crash the panel! 💥</button>
+            </div>
         </div>
 
+        <!-- Main Screen: Live Chat -->
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="header-title-wrap">
+                <div class="header-title">CHAI & WEBSOCKETS</div>
+                <div class="header-status">
+                    <div id="statusDot" class="status-dot disconnected"></div>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </div>
+            
+            <div class="header-controls">
+                <div id="soundToggle" class="sound-toggle" onclick="toggleSound()">
+                    <span>🔊</span> SOUNDS
+                </div>
+            </div>
+        </div>
 
+        <!-- Chat messages scroll box -->
+        <div id="messages-container" class="chat-messages">
+            <!-- Messages pop up here -->
+            <div class="system-banner">Welcome to the comic strip! Send a message or reaction.</div>
+        </div>
+
+        <!-- Reactions Bar -->
+        <div class="reaction-bar">
+            <button class="reaction-btn btn-pow" onclick="sendReaction('pow')">💥 POW!</button>
+            <button class="reaction-btn btn-boom" onclick="sendReaction('boom')">💣 BOOM!</button>
+            <button class="reaction-btn btn-smash" onclick="sendReaction('smash')">⚡ SMASH!</button>
+            <button class="reaction-btn btn-okok" onclick="sendReaction('okok')">😐 OK OK!</button>
+            <button class="reaction-btn btn-lalala" onclick="sendReaction('lalala')">🌸 LA LA LA!</button>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-area">
+            <input type="text" id="messageInput" placeholder="Type a funny punchline..." autocomplete="off">
+            <button id="sendButton" class="send-btn">POW! 🚀</button>
+        </div>
+
+    </div>
 
     <script>
+        // Retro Comic Synthesized Audio Engine
+        const AudioSynth = {
+            enabled: true,
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playPop() {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(700, this.ctx.currentTime + 0.08);
+                    
+                    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                    
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.08);
+                } catch(e) {}
+            },
+            playLaser() {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(900, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.25);
+                    
+                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                    
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.25);
+                } catch(e) {}
+            },
+            playBoing() {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(450, this.ctx.currentTime + 0.08);
+                    osc.frequency.linearRampToValueAtTime(220, this.ctx.currentTime + 0.16);
+                    osc.frequency.linearRampToValueAtTime(350, this.ctx.currentTime + 0.24);
+                    
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.24);
+                    
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.24);
+                } catch(e) {}
+            },
+            playSuccess() {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const now = this.ctx.currentTime;
+                    const playTone = (freq, start, duration) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, start);
+                        gain.gain.setValueAtTime(0.08, start);
+                        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+                        osc.start(start);
+                        osc.stop(start + duration);
+                    };
+                    playTone(261.63, now, 0.08); // C4
+                    playTone(329.63, now + 0.08, 0.08); // E4
+                    playTone(392.00, now + 0.16, 0.08); // G4
+                    playTone(523.25, now + 0.24, 0.15); // C5
+                } catch(e) {}
+            }
+        };
 
+        // UI & Game variables
+        let connection = null;
+        let selectedVibe = 'okok';
+        const currentUser = {
+            name: '',
+            vibe: 'okok'
+        };
 
-        //dom
-        const messageInput = document.getElementById('messageInput');
-        const messageSendButton = document.getElementById('sendButton');
-        const messagesContainer = document.getElementById('messages-container');
+        // Generates fun comic book nicknames
+        function generateRandomNickname() {
+            const adjectives = ['Spicy', 'Soggy', 'Super', 'Atomic', 'Glitchy', 'Bouncing', 'Chai', 'Funky', 'Doodle', 'Wobbly', 'Electric', 'Turbo'];
+            const nouns = ['Biscuit', 'Developer', 'Ranger', 'Pixel', 'Bubble', 'Panda', 'Banana', 'Websocket', 'Server', 'Packet', 'Coder', 'Hero'];
+            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            const number = Math.floor(Math.random() * 90) + 10;
+            return `${adj}${noun}${number}`;
+        }
 
+        // Initialize setup screen
+        document.getElementById('usernameInput').value = generateRandomNickname();
 
-        const {port}= window.location;
-        const connection = new WebSocket(`ws://localhost:${port}`);
-       //"Open a WebSocket connection to this address."
-        // this line > const {port}= window.location; < is used to get the port number from the current URL, which is then used to establish a WebSocket connection to the server running on that port.
-        connection.onopen = () => {
+        // Selecting a vibe handler
+        function selectVibe(vibe) {
+            selectedVibe = vibe;
+            document.querySelectorAll('.vibe-card').forEach(card => card.classList.remove('selected'));
+            if (vibe === 'okok') {
+                document.querySelector('.card-okok').classList.add('selected');
+            } else {
+                document.querySelector('.card-lalala').classList.add('selected');
+            }
+            AudioSynth.playPop();
+        }
 
-            connection.onmessage=(message)=>{
-                console.log("message recieved from server: ",message.data);
-                const rawdata= message.data;
-                const text = JSON.parse(rawdata).Message; // ye line isliye hai kyunki server se jo message aayega wo JSON format me aayega, to usko parse karna padega taki hum usme se message ko extract kar sakein
+        // Toggle sound state
+        function toggleSound() {
+            AudioSynth.enabled = !AudioSynth.enabled;
+            const btn = document.getElementById('soundToggle');
+            if (AudioSynth.enabled) {
+                btn.innerHTML = '<span>🔊</span> SOUNDS';
+                btn.style.background = '#fff';
+            } else {
+                btn.innerHTML = '<span>🔇</span> SILENT';
+                btn.style.background = '#ff6e6e';
+            }
+        }
 
-                const li = document.createElement('li');
-                li.innerHTML= text;
-                messagesContainer.appendChild(li);
+        // Action when user clicks "Crash the panel!"
+        function enterChat() {
+            const username = document.getElementById('usernameInput').value.trim();
+            if (!username) {
+                alert('Grab a comic name first!');
+                return;
+            }
+            currentUser.name = username;
+            currentUser.vibe = selectedVibe;
+
+            // Transition page view
+            document.getElementById('setupOverlay').classList.add('hidden');
+            AudioSynth.playSuccess();
+
+            // Connect to server
+            initWebSocket();
+        }
+
+        // WebSocket Connection Initializer
+        function initWebSocket() {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            const {port}= window.location;
+            connection = new WebSocket(`ws://localhost:${port}`);
+
+            connection.onopen = () => {
+                console.log("Connected to comic server");
+                statusDot.classList.remove('disconnected');
+                statusText.innerText = "ONLINE";
+                
+                // Send join notification
+                connection.send(JSON.stringify({
+                    Message: `${currentUser.name} crashed into the panel!`,
+                    Sender: "SYSTEM",
+                    Vibe: currentUser.vibe,
+                    Type: "system"
+                }));
+            };
+
+            connection.onclose = () => {
+                console.log("Disconnected from server");
+                statusDot.classList.add('disconnected');
+                statusText.innerText = "OFFLINE - RETRYING...";
+                
+                // Auto reconnect after 3 seconds
+                setTimeout(initWebSocket, 3000);
+            };
+
+            connection.onerror = (err) => {
+                console.error("Websocket error:", err);
+            };
+
+            connection.onmessage = (event) => {
+                let data;
+                try {
+                    data = JSON.parse(event.data);
+                } catch(e) {
+                    // Fallback to support raw string legacy messages
+                    data = {
+                        Message: event.data,
+                        Sender: 'Mysterious Stranger',
+                        Vibe: 'okok',
+                        Type: 'chat'
+                    };
+                }
+
+                const msgType = data.Type || 'chat';
+
+                if (msgType === 'system') {
+                    renderSystemBanner(data.Message);
+                } else if (msgType === 'reaction') {
+                    triggerReactionAnimation(data.Reaction, data.Sender, data.Vibe);
+                } else {
+                    renderChatMessage(data);
+                }
+            };
+        }
+
+        // UI rendering functions
+        function renderSystemBanner(msg) {
+            const container = document.getElementById('messages-container');
+            const banner = document.createElement('div');
+            banner.className = 'system-banner';
+            banner.innerText = msg;
+            container.appendChild(banner);
+            container.scrollTop = container.scrollHeight;
+            AudioSynth.playPop();
+        }
+
+        function renderChatMessage(data) {
+            const container = document.getElementById('messages-container');
+            
+            // Clean message parameters
+            const text = data.Message || "";
+            const sender = data.Sender || "Anonymous";
+            const vibe = data.Vibe || "okok";
+            const isMe = (sender === currentUser.name);
+            
+            const msgContainer = document.createElement('div');
+            msgContainer.className = `msg-container ${isMe ? 'msg-right' : 'msg-left'} theme-${vibe}`;
+
+            // Meta Info (name + badge)
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'msg-meta';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.innerText = isMe ? 'YOU' : sender;
+            
+            const badgeSpan = document.createElement('span');
+            badgeSpan.className = `vibe-badge badge-${vibe}`;
+            badgeSpan.innerText = vibe === 'okok' ? 'OK OK' : 'LA LA';
+            
+            metaDiv.appendChild(nameSpan);
+            metaDiv.appendChild(badgeSpan);
+            
+            // Speech Bubble
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'msg-bubble';
+            bubbleDiv.innerText = text;
+
+            msgContainer.appendChild(metaDiv);
+            msgContainer.appendChild(bubbleDiv);
+            
+            container.appendChild(msgContainer);
+            container.scrollTop = container.scrollHeight;
+            
+            if (!isMe) {
+                AudioSynth.playPop();
+            }
+        }
+
+        // Comic Screen Blast Reactions Trigger
+        function triggerReactionAnimation(reaction, sender, vibe) {
+            const overlay = document.getElementById('reaction-overlay');
+            const elem = document.createElement('div');
+            elem.className = `floating-reaction react-${reaction}`;
+
+            let word = 'POW!';
+            if (reaction === 'pow') word = 'POW!';
+            else if (reaction === 'boom') word = 'BOOM!';
+            else if (reaction === 'smash') word = 'SMASH!';
+            else if (reaction === 'okok') word = 'OK OK!';
+            else if (reaction === 'lalala') word = 'LA LA LA!';
+
+            // Pick a random location in middle coordinates
+            const xVal = Math.floor(Math.random() * 60) + 20; // 20% to 80% width
+            const yVal = Math.floor(Math.random() * 40) + 35; // 35% to 75% height
+
+            elem.style.left = `${xVal}%`;
+            elem.style.top = `${yVal}%`;
+
+            elem.innerHTML = `
+                <div class="comic-burst">
+                    <svg viewBox="0 0 100 100" class="burst-svg">
+                        <polygon points="50,0 60,35 95,25 70,50 95,75 60,65 50,100 40,65 5,75 30,50 5,25 40,35" fill="currentColor"/>
+                    </svg>
+                    <span class="burst-text">${word}</span>
+                </div>
+                <div class="burst-sender">by ${sender}</div>
+            `;
+
+            overlay.appendChild(elem);
+
+            // Synthesize sound based on reaction type
+            if (reaction === 'boom' || reaction === 'smash') {
+                AudioSynth.playLaser();
+            } else if (reaction === 'pow') {
+                AudioSynth.playBoing();
+            } else {
+                AudioSynth.playPop();
             }
 
-            messageSendButton.addEventListener('click', (ev) => {
-                const value = messageInput.value;
-                connection.send(JSON.stringify({ Message: value })); // ye message server ko bhej diya hai
-            });
-        }; 
+            // Cleanup animation element
+            setTimeout(() => {
+                elem.remove();
+            }, 1500);
+        }
+
+        // Actions Sending
+        function sendChatMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text || !connection || connection.readyState !== WebSocket.OPEN) return;
+
+            connection.send(JSON.stringify({
+                Message: text,
+                Sender: currentUser.name,
+                Vibe: currentUser.vibe,
+                Type: 'chat'
+            }));
+
+            input.value = '';
+            AudioSynth.playPop();
+        }
+
+        function sendReaction(reactionName) {
+            if (!connection || connection.readyState !== WebSocket.OPEN) return;
+
+            connection.send(JSON.stringify({
+                Message: "",
+                Sender: currentUser.name,
+                Vibe: currentUser.vibe,
+                Type: 'reaction',
+                Reaction: reactionName
+            }));
+        }
+
+        // Event hooks
+        document.getElementById('sendButton').addEventListener('click', sendChatMessage);
+        document.getElementById('messageInput').addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
     </script>
-
-
 </body>
 </html>
